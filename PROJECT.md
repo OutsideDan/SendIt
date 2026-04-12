@@ -2,7 +2,7 @@
 
 # SendIt! — Project Status
 
-**Last updated:** 2026-04-12 (initial setup)
+**Last updated:** 2026-04-12 (Add favicon and Add-to-Home-Screen support)
 **Live URL:** https://outsidedan.github.io/SendIt/
 **Repo:** https://github.com/OutsideDan/SendIt
 
