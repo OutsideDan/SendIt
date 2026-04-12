@@ -56,3 +56,39 @@ Do not wait until after implementation to design the check.
 - Avoid assumed technical knowledge
 - Plain language over jargon; define jargon when it comes up
 - Step-by-step beats abstract description
+
+---
+
+## Deployment
+
+**Live URL:** https://outsidedan.github.io/SendIt/
+**Repo:** https://github.com/OutsideDan/SendIt
+**Hosting:** GitHub Pages — serves `main` branch root directly. No build step.
+
+### How to deploy
+```
+npm run check    # run checks without deploying
+npm run deploy   # run checks + git push → live within ~30s
+```
+
+The `predeploy` hook in `package.json` runs `scripts/pre-deploy.js` automatically before every push. It blocks deploy on hard failures (missing labels, localhost URLs in code) and warns on soft issues (file size, missing hints).
+
+### What gets checked (`scripts/pre-deploy.js`)
+- All `<input>` elements have `<label for="...">` associations
+- All `<button>` elements have text, aria-label, or title
+- Page has `<title>` and viewport meta
+- `index.html` under 250 KB (warn) / 500 KB (block)
+- No `console.log` statements left in
+- No `localhost:` URLs hardcoded
+- External scripts have `defer` or `async`
+- `preconnect` hints present for CDN hosts
+
+### What is NOT checked
+- WCAG color contrast — theme colors are Mira's creative choices, not a compliance target
+
+### After every deploy
+- `DEPLOY_LOG.md` is auto-updated with commit hash, message, and changed files
+- `PROJECT.md` "Last updated" line is auto-updated
+
+### GitHub Actions
+`.github/workflows/checks.yml` runs `pre-deploy.js --check-only` on every push to `main` and on pull requests. This is the CI gate — visible in the repo's Actions tab.

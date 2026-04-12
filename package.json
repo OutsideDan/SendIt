@@ -1,0 +1,12 @@
+{
+  "name": "sendit",
+  "version": "1.0.0",
+  "description": "SendIt! — Mira's rock climbing progress tracker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check":      "node scripts/pre-deploy.js --check-only",
+    "predeploy":  "node scripts/pre-deploy.js",
+    "deploy":     "git push origin main"
+  }
+}

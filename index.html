@@ -4,9 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SendIt! — Climb Tracker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <!-- Performance: establish connections early so fonts/CDN scripts don't wait on DNS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- defer: scripts download in parallel but run after HTML is parsed, so they don't block render -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3" defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -607,7 +613,7 @@
       <div class="form-grid">
 
         <div class="form-group">
-          <label>Date</label>
+          <label for="inputDate">Date</label>
           <input type="date" id="inputDate">
         </div>
 
@@ -620,7 +626,7 @@
         </div>
 
         <div class="form-group">
-          <label>Grade</label>
+          <label for="inputGrade">Grade</label>
           <select id="inputGrade"></select>
         </div>
 
@@ -661,13 +667,13 @@
         </div>
 
         <div class="form-group">
-          <label>Location</label>
+          <label for="inputLocation">Location</label>
           <input type="text" id="inputLocation" list="locationList" placeholder="Gym or crag name">
           <datalist id="locationList"></datalist>
         </div>
 
         <div class="form-group">
-          <label>Notes (optional)</label>
+          <label for="inputNotes">Notes (optional)</label>
           <input type="text" id="inputNotes" placeholder="e.g. crux was the third move">
         </div>
 
