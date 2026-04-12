@@ -2,7 +2,7 @@
 
 # SendIt! — Project Status
 
-**Last updated:** 2026-04-12 (Expand lint checks to 20 points across 6 categories)
+**Last updated:** 2026-04-12 (Pin CDN versions: chart.js@4.5.1, chartjs-adapter-date-fns@3.0.0)
 **Live URL:** https://outsidedan.github.io/SendIt/
 **Repo:** https://github.com/OutsideDan/SendIt
 

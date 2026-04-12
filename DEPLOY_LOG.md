@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-04-12 13:38:46
+
+- **Commit:** `bdccae0` `bdccae05d734c77a1f2cd429537b96ebbce3a4f0`
+- **Message:** Pin CDN versions: chart.js@4.5.1, chartjs-adapter-date-fns@3.0.0
+- **Files changed:**
+  - `index.html`
+
+---
 ## 2026-04-12 13:29:48
 
 - **Commit:** `a983cdf` `a983cdfdbb58f405b3ddb67dea01c16dc47c06db`
