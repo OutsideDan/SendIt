@@ -5,8 +5,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "icons":      "node scripts/make-icons.js",
     "check":      "node scripts/pre-deploy.js --check-only",
     "predeploy":  "node scripts/pre-deploy.js",
     "deploy":     "git push origin main"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.0"
   }
 }

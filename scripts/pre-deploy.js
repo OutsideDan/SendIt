@@ -156,6 +156,22 @@ for (const host of cdnHosts) {
   }
 }
 
+// ── Icons: all PWA/favicon files present ─────────────────────────────────────
+
+const iconFiles = [
+  'favicon-16x16.png',
+  'favicon-32x32.png',
+  'apple-touch-icon.png',
+  'icon-192.png',
+  'icon-512.png',
+];
+const missingIcons = iconFiles.filter(f => !exists(f));
+if (missingIcons.length === 0) {
+  pass('All favicon/icon files present');
+} else {
+  missingIcons.forEach(f => fail(`Missing icon file: ${f} — run: npm run icons`));
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // PRINT RESULTS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -169,7 +185,7 @@ const sections = [
   },
   {
     title: 'Performance',
-    filter: m => /KB|defer|async|preconnect/i.test(m),
+    filter: m => /KB|defer|async|preconnect|icon|favicon/i.test(m),
   },
   {
     title: 'Hygiene',

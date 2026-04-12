@@ -1,0 +1,14 @@
+{
+  "name": "SendIt!",
+  "short_name": "SendIt!",
+  "description": "Mira's rock climbing progress tracker",
+  "start_url": "/SendIt/",
+  "scope": "/SendIt/",
+  "display": "standalone",
+  "background_color": "#fde8f4",
+  "theme_color": "#d87cb0",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
