@@ -2,7 +2,7 @@
 
 # SendIt! — Project Status
 
-**Last updated:** 2026-04-12 (Add favicon and Add-to-Home-Screen support)
+**Last updated:** 2026-04-12 (Expand lint checks to 20 points across 6 categories)
 **Live URL:** https://outsidedan.github.io/SendIt/
 **Repo:** https://github.com/OutsideDan/SendIt
 
