@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="pastel">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SendIt! — Climb Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── BASE VARS (Pastel default) ── */
+    :root {
+      --radius: 14px;
+
+      /* Surface */
+      --card:   rgba(255,255,255,0.75);
+      --border: rgba(200,185,240,0.4);
+      --text:   #2e2b4a;
+      --muted:  #9b90bc;
+      --teal:   #7ecece;
+      --gold:   #f7c59f;
+
+      /* Theme-driven */
+      --body-bg:           linear-gradient(160deg, #fde8f4 0%, #ede8ff 30%, #e8f4fd 60%, #f4fde8 100%);
+      --header-bg:         linear-gradient(135deg, #fde0f0 0%, #ede0ff 40%, #d8eeff 80%, #d8f5ee 100%);
+      --header-border-col: rgba(200,185,240,0.3);
+      --header-glow-a:     rgba(255,143,171,0.18);
+      --header-glow-b:     rgba(126,206,206,0.15);
+      --title-grad:        linear-gradient(90deg, #d87cb0, #a07ad0, #6ab4cc);
+      --ui-grad:           linear-gradient(90deg, #d87cb0, #a07ad0);
+      --sys-active-bg:     linear-gradient(135deg, #c8eef0, #b8d8f8);
+      --sys-active-border: #9ad0d8;
+      --sys-active-text:   #2e6878;
+      --btn-grad:          linear-gradient(135deg, #e8a0c8, #c0a0e0, #9abce8);
+      --btn-color:         #fff;
+      --input-bg:          rgba(255,255,255,0.6);
+      --input-border:      rgba(200,185,240,0.4);
+      --focus-ring:        #b8a0e8;
+      --focus-shadow-col:  rgba(184,160,232,0.15);
+      --hover-bg:          rgba(184,160,232,0.15);
+      --card-shadow-col:   rgba(160,140,210,0.1);
+      --del-hover-bg:      rgba(255,143,171,0.15);
+      --del-hover-color:   #d06080;
+    }
+
+    /* ── GLACIER ── */
+    html[data-theme="midnight"] {
+      --card:   rgba(8,28,58,0.9);
+      --border: rgba(80,160,230,0.28);
+      --text:   #dff0ff;
+      --muted:  #5888b0;
+      --teal:   #78c8f0;
+      --gold:   #b0d8ff;
+
+      --body-bg:           #0d2040;
+      --header-bg:         #102a50;
+      --header-border-col: rgba(80,160,230,0.22);
+      --header-glow-a:     rgba(80,180,255,0.14);
+      --header-glow-b:     rgba(160,220,255,0.09);
+      --title-grad:        linear-gradient(90deg, #78c0ff, #b8e0ff, #e0f4ff);
+      --ui-grad:           linear-gradient(90deg, #78b8f0, #b0d8ff);
+      --sys-active-bg:     linear-gradient(135deg, #183e70, #1a5090);
+      --sys-active-border: #3878b8;
+      --sys-active-text:   #c0e0ff;
+      --btn-grad:          linear-gradient(135deg, #2070c0, #3090d0, #70c0f0);
+      --btn-color:         #fff;
+      --input-bg:          rgba(8,28,58,0.7);
+      --input-border:      rgba(80,160,230,0.25);
+      --focus-ring:        #58b0e8;
+      --focus-shadow-col:  rgba(88,176,232,0.2);
+      --hover-bg:          rgba(80,160,230,0.16);
+      --card-shadow-col:   rgba(6,20,60,0.4);
+      --del-hover-bg:      rgba(255,100,100,0.15);
+      --del-hover-color:   #ff8888;
+      --chart-grid-col:    rgba(80,160,230,0.14);
+      --chart-tick-col:    #5888b0;
+      --chart-legend-col:  #dff0ff;
+    }
+
+    /* ── SUNSET ── */
+    html[data-theme="sunset"] {
+      --card:   rgba(255,255,255,0.72);
+      --border: rgba(220,130,160,0.35);
+      --text:   #2e1a28;
+      --muted:  #a06880;
+      --teal:   #e060a0;
+      --gold:   #c870d0;
+
+      --body-bg:           linear-gradient(160deg, #ffe8a8 0%, #ffbcc8 40%, #e8a8e0 75%, #c8b0e8 100%);
+      --header-bg:         linear-gradient(135deg, #ffd890 0%, #ffb0c0 50%, #e0a8d8 100%);
+      --header-border-col: rgba(220,130,160,0.3);
+      --header-glow-a:     rgba(255,160,100,0.22);
+      --header-glow-b:     rgba(200,120,210,0.18);
+      --title-grad:        linear-gradient(90deg, #d04080, #b030c0, #e06020);
+      --ui-grad:           linear-gradient(90deg, #d04080, #b030c0);
+      --sys-active-bg:     linear-gradient(135deg, #ffd8e8, #f0c8f0);
+      --sys-active-border: #d880b0;
+      --sys-active-text:   #7a1858;
+      --btn-grad:          linear-gradient(135deg, #e84080, #c030b8, #f07820);
+      --btn-color:         #fff;
+      --input-bg:          rgba(255,255,255,0.55);
+      --input-border:      rgba(210,130,160,0.35);
+      --focus-ring:        #d060a0;
+      --focus-shadow-col:  rgba(210,80,140,0.18);
+      --hover-bg:          rgba(220,130,170,0.15);
+      --card-shadow-col:   rgba(180,80,130,0.12);
+      --del-hover-bg:      rgba(220,60,80,0.12);
+      --del-hover-color:   #c03060;
+      --chart-grid-col:    rgba(200,100,140,0.18);
+      --chart-tick-col:    #a06080;
+      --chart-legend-col:  #2e1a28;
+    }
+
+    /* ── EVERMORE ── */
+    html[data-theme="forest"] {
+      --card:   rgba(30,50,35,0.82);
+      --border: rgba(160,230,170,0.25);
+      --text:   #e8f8e0;
+      --muted:  #90b898;
+      --teal:   #78e8a0;
+      --gold:   #d8f060;
+
+      --body-bg:           linear-gradient(160deg, #2a4828 0%, #304838 40%, #2c3060 80%, #20244a 100%);
+      --header-bg:         linear-gradient(135deg, #2e5030 0%, #344838 40%, #2a2c58 100%);
+      --header-border-col: rgba(180,255,180,0.2);
+      --header-glow-a:     rgba(140,255,140,0.14);
+      --header-glow-b:     rgba(180,150,255,0.14);
+      --title-grad:        linear-gradient(90deg, #78e898, #d8f060, #e090d8, #a898f8);
+      --ui-grad:           linear-gradient(90deg, #78e898, #d8f060);
+      --sys-active-bg:     linear-gradient(135deg, #305040, #3a3870);
+      --sys-active-border: #68a870;
+      --sys-active-text:   #c0f0c8;
+      --btn-grad:          linear-gradient(135deg, #388848, #507868, #7868b8);
+      --btn-color:         #e8f8e0;
+      --input-bg:          rgba(24,40,28,0.8);
+      --input-border:      rgba(160,230,170,0.22);
+      --focus-ring:        #78e898;
+      --focus-shadow-col:  rgba(120,232,152,0.2);
+      --hover-bg:          rgba(160,230,170,0.14);
+      --card-shadow-col:   rgba(10,28,16,0.55);
+      --del-hover-bg:      rgba(230,120,200,0.15);
+      --del-hover-color:   #e898d0;
+      --chart-grid-col:    rgba(160,230,170,0.14);
+      --chart-tick-col:    #90b898;
+      --chart-legend-col:  #e8f8e0;
+    }
+
+    /* ── MAGIC EFFECTS (evermore theme only) ── */
+    #magic-effects {
+      display: none;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    html[data-theme="forest"] #magic-effects { display: block; }
+
+    .sparkle-dot {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, #e0ff90 0%, #80ffb8 55%, transparent 100%);
+      animation: sparkle-rise var(--dur, 9s) var(--delay, 0s) ease-in-out infinite;
+      opacity: 0;
+    }
+    @keyframes sparkle-rise {
+      0%   { transform: translateY(0) translateX(0) scale(0.2); opacity: 0; }
+      12%  { opacity: 1; }
+      50%  { opacity: 0.7; transform: translateY(-45vh) translateX(var(--drift, 18px)) scale(0.9); }
+      88%  { opacity: 0.2; }
+      100% { transform: translateY(-92vh) translateX(calc(var(--drift, 18px) * 1.4)) scale(0.1); opacity: 0; }
+    }
+
+    .magic-star {
+      position: absolute;
+      width: 6px; height: 6px;
+      background: #fff8a0;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      animation: star-twinkle var(--sdur, 3s) var(--sdelay, 0s) ease-in-out infinite;
+      opacity: 0;
+    }
+    @keyframes star-twinkle {
+      0%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+      50%       { opacity: 0.9; transform: scale(1.2) rotate(20deg); }
+    }
+
+    .fairy {
+      position: absolute;
+      animation: fairy-drift var(--fdur, 14s) var(--fdelay, 0s) ease-in-out infinite;
+      filter: drop-shadow(0 0 10px rgba(160,255,160,0.7));
+    }
+    @keyframes fairy-drift {
+      0%   { transform: translate(0px, 0px) rotate(-4deg) scaleX(1); }
+      20%  { transform: translate(28px, -38px) rotate(6deg) scaleX(1); }
+      45%  { transform: translate(-18px, -22px) rotate(-2deg) scaleX(-1); }
+      70%  { transform: translate(14px, -50px) rotate(8deg) scaleX(-1); }
+      100% { transform: translate(0px, 0px) rotate(-4deg) scaleX(1); }
+    }
+    .fairy-wings-left, .fairy-wings-right {
+      animation: wing-flap 0.28s ease-in-out infinite alternate;
+      transform-origin: center bottom;
+    }
+    .fairy-wings-right { animation-direction: alternate-reverse; }
+    @keyframes wing-flap {
+      from { transform: scaleX(1) scaleY(1); }
+      to   { transform: scaleX(0.55) scaleY(0.9); }
+    }
+
+    /* ── GLOBAL ── */
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background: var(--body-bg);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 80px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--header-bg);
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--header-border-col);
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 75% 30%, var(--header-glow-a) 0%, transparent 55%),
+        radial-gradient(ellipse at 20% 80%, var(--header-glow-b) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .header-title {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      background: var(--title-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+    }
+
+    /* ── THEME PICKER ── */
+    .theme-picker {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      z-index: 10;
+    }
+    .theme-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      outline: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .theme-dot:hover { transform: scale(1.2); }
+    .theme-dot.active {
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 0 0 4px rgba(0,0,0,0.15);
+    }
+    .theme-dot[data-theme="pastel"]   { background: linear-gradient(135deg, #ffb8d4, #c8b8f8, #b8e8f0); }
+    .theme-dot[data-theme="midnight"] { background: linear-gradient(135deg, #0d2648, #2070c0, #78c8f0); }
+    .theme-dot[data-theme="sunset"]   { background: linear-gradient(135deg, #ffd890, #ffb0c0, #c8a8e0); }
+    .theme-dot[data-theme="forest"]   { background: linear-gradient(135deg, #1c3228, #4a7858, #b8a8e8); }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      box-shadow: 0 2px 8px var(--card-shadow-col);
+    }
+    .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: var(--ui-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── SECTION CARDS ── */
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 24px var(--card-shadow-col);
+    }
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      background: var(--ui-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 18px;
+    }
+
+    /* ── LOG FORM ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    input[type="date"],
+    input[type="text"],
+    select,
+    textarea {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--focus-ring);
+      box-shadow: 0 0 0 3px var(--focus-shadow-col);
+    }
+    textarea { resize: vertical; min-height: 60px; }
+
+    /* grade system toggle */
+    .system-toggle { display: flex; gap: 8px; }
+    .system-btn {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 10px;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .system-btn.active {
+      background: var(--sys-active-bg);
+      border-color: var(--sys-active-border);
+      color: var(--sys-active-text);
+    }
+
+    /* attempts stepper */
+    .stepper {
+      display: flex;
+      align-items: center;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .stepper-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .stepper-btn:hover { background: var(--hover-bg); }
+    .stepper-val {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text);
+    }
+
+    /* outcome cards */
+    .outcome-group { display: flex; gap: 10px; }
+    .outcome-card {
+      flex: 1;
+      background: var(--input-bg);
+      border: 2px solid var(--input-border);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 8px;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .outcome-card:hover { border-color: var(--focus-ring); transform: translateY(-1px); }
+    .outcome-card.selected-flash { background: linear-gradient(135deg, rgba(255,180,200,0.25), rgba(255,160,190,0.15)); border-color: #ff8fab; }
+    .outcome-card.selected-sent  { background: linear-gradient(135deg, rgba(247,210,170,0.25), rgba(240,200,160,0.15)); border-color: #f0b87a; }
+    .outcome-card.selected-fell  { background: linear-gradient(135deg, rgba(184,160,232,0.25), rgba(170,148,220,0.15)); border-color: #b8a0e8; }
+    .outcome-icon { font-size: 1.4rem; }
+    .outcome-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
+    .outcome-card.selected-flash .outcome-label { color: #d06080; }
+    .outcome-card.selected-sent  .outcome-label { color: #c07830; }
+    .outcome-card.selected-fell  .outcome-label { color: #8060c0; }
+
+    /* project toggle */
+    .project-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--input-bg);
+      border: 2px solid var(--input-border);
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 12px 16px;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .project-toggle:hover { border-color: var(--focus-ring); }
+    .project-toggle.active {
+      background: linear-gradient(135deg, rgba(184,232,232,0.2), rgba(168,216,240,0.2));
+      border-color: var(--teal);
+    }
+    .project-toggle .toggle-icon { font-size: 1.1rem; }
+    .project-toggle .toggle-text { font-size: 0.8rem; font-weight: 600; color: var(--muted); flex: 1; }
+    .project-toggle.active .toggle-text { color: var(--teal); }
+    .project-pip {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .project-toggle.active .project-pip {
+      background: var(--teal);
+      border-color: var(--teal);
+    }
+
+    /* project tag on climb cards */
+    .project-tag {
+      background: rgba(78,205,196,0.15);
+      border-radius: 4px;
+      color: var(--teal);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-left: 6px;
+      padding: 1px 6px;
+      text-transform: uppercase;
+    }
+
+    /* submit button */
+    .log-btn {
+      background: var(--btn-grad);
+      border: none;
+      border-radius: 10px;
+      color: var(--btn-color);
+      cursor: pointer;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 14px;
+      text-transform: uppercase;
+      transition: transform 0.15s, opacity 0.15s;
+      width: 100%;
+    }
+    .log-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .log-btn:active { transform: translateY(0); }
+    @keyframes jiggle {
+      0%,100% { transform: rotate(0deg); }
+      20%      { transform: rotate(-2deg); }
+      40%      { transform: rotate(2deg); }
+      60%      { transform: rotate(-1deg); }
+      80%      { transform: rotate(1deg); }
+    }
+    .log-btn.ready { animation: jiggle 0.5s ease; }
+
+    /* ── CHART ── */
+    .chart-wrap { position: relative; height: 260px; }
+
+    /* ── CLIMB LIST ── */
+    .climb-list { display: flex; flex-direction: column; gap: 10px; }
+    .empty-state { color: var(--muted); font-size: 0.9rem; padding: 24px 0; text-align: center; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .climb-card {
+      animation: slideDown 0.25s ease;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+    .grade-badge {
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      min-width: 54px;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    .badge-flash { background: linear-gradient(135deg, #ffe0ea, #ffd0e0); color: #c05070; }
+    .badge-sent  { background: linear-gradient(135deg, #ffeedd, #ffe0c8); color: #b07030; }
+    .badge-fell  { background: linear-gradient(135deg, #ece0ff, #e0d4ff); color: #7850b0; }
+    .climb-info { flex: 1; }
+    .climb-meta { color: var(--muted); font-size: 0.75rem; margin-top: 2px; }
+    .crown { color: var(--gold); margin-left: 4px; font-size: 0.9rem; }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .delete-btn:hover { color: var(--del-hover-color); background: var(--del-hover-bg); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 600px) {
+      .header-title { font-size: 1.5rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+      .chart-wrap { height: 200px; }
+      .theme-picker { top: 16px; right: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div id="magic-effects"></div>
+
+<header>
+  <div class="header-title">SendIt!</div>
+  <div class="header-sub">Climb Tracker</div>
+  <div class="theme-picker" id="themePicker">
+    <button class="theme-dot" data-theme="pastel"   title="Pastel"></button>
+    <button class="theme-dot" data-theme="midnight" title="Midnight"></button>
+    <button class="theme-dot" data-theme="sunset"   title="Sunset"></button>
+    <button class="theme-dot" data-theme="forest"   title="Forest"></button>
+  </div>
+  <div class="stats-bar" id="statsBar"></div>
+</header>
+
+<main>
+
+  <!-- LOG FORM -->
+  <div class="section-card">
+    <div class="section-title">Log a Climb</div>
+    <form id="climbForm">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="inputDate">
+        </div>
+
+        <div class="form-group">
+          <label>Grade System</label>
+          <div class="system-toggle">
+            <button type="button" class="system-btn active" data-system="V">Bouldering (V)</button>
+            <button type="button" class="system-btn" data-system="YDS">Sport (5.x)</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Grade</label>
+          <select id="inputGrade"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Tries This Session</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" id="attemptsDown">−</button>
+            <span class="stepper-val" id="attemptsVal">1</span>
+            <button type="button" class="stepper-btn" id="attemptsUp">+</button>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>Outcome</label>
+          <div class="outcome-group">
+            <div class="outcome-card" data-outcome="flash">
+              <span class="outcome-icon">⚡</span>
+              <span class="outcome-label">Flash</span>
+            </div>
+            <div class="outcome-card" data-outcome="sent">
+              <span class="outcome-icon">✓</span>
+              <span class="outcome-label">Sent It</span>
+            </div>
+            <div class="outcome-card" data-outcome="fell">
+              <span class="outcome-icon">✗</span>
+              <span class="outcome-label">Fell</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>Project?</label>
+          <div class="project-toggle" id="projectToggle">
+            <span class="toggle-icon">🎯</span>
+            <span class="toggle-text">This is my project — a climb I've been working on</span>
+            <div class="project-pip"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" id="inputLocation" list="locationList" placeholder="Gym or crag name">
+          <datalist id="locationList"></datalist>
+        </div>
+
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <input type="text" id="inputNotes" placeholder="e.g. crux was the third move">
+        </div>
+
+      </div>
+      <br>
+      <button type="submit" class="log-btn" id="logBtn">Log It!</button>
+    </form>
+  </div>
+
+  <!-- CHART -->
+  <div class="section-card">
+    <div class="section-title">Progress Chart</div>
+    <div class="chart-wrap">
+      <canvas id="climbChart"></canvas>
+    </div>
+  </div>
+
+  <!-- CLIMB LIST -->
+  <div class="section-card">
+    <div class="section-title">Recent Climbs</div>
+    <div class="climb-list" id="climbList"></div>
+  </div>
+
+</main>
+
+<script>
+  // ── GRADE MAPPINGS ──────────────────────────────────────────────────────────
+  const V_GRADES = { "V0":0,"V1":1,"V2":2,"V3":3,"V4":4,"V5":5,"V6":6,"V7":7,"V8":8,"V9":9,"V10":10,"V11":11,"V12":12 };
+  const YDS_GRADES = {
+    "5.5":0,"5.6":1,"5.7":2,"5.8":3,"5.9":4,
+    "5.10a":5,"5.10b":6,"5.10c":7,"5.10d":8,
+    "5.11a":9,"5.11b":10,"5.11c":11,"5.11d":12,
+    "5.12a":13,"5.12b":14,"5.12c":15,"5.12d":16
+  };
+  const REV_V   = Object.fromEntries(Object.entries(V_GRADES).map(([k,v])=>[v,k]));
+  const REV_YDS = Object.fromEntries(Object.entries(YDS_GRADES).map(([k,v])=>[v,k]));
+
+  function gradeToNum(grade, system) {
+    return system === "V" ? (V_GRADES[grade] ?? 0) : (YDS_GRADES[grade] ?? 0);
+  }
+  function numToGrade(num, system) {
+    return system === "V" ? (REV_V[num] ?? `V${num}`) : (REV_YDS[num] ?? `${num}`);
+  }
+  function gradeMap(system) { return system === "V" ? V_GRADES : YDS_GRADES; }
+
+  // ── THEME ───────────────────────────────────────────────────────────────────
+  const THEME_KEY = "mira_theme";
+
+  function buildMagicEffects() {
+    const container = document.getElementById("magic-effects");
+    container.innerHTML = "";
+
+    // Sparkle firefly dots
+    const sparkleCount = 18;
+    for (let i = 0; i < sparkleCount; i++) {
+      const el = document.createElement("div");
+      el.className = "sparkle-dot";
+      const size = 5 + Math.random() * 7;
+      el.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        bottom:${Math.random()*30}%;
+        --dur:${7+Math.random()*8}s;
+        --delay:${Math.random()*9}s;
+        --drift:${(Math.random()-0.5)*60}px;
+      `;
+      container.appendChild(el);
+    }
+
+    // Twinkling stars
+    for (let i = 0; i < 12; i++) {
+      const el = document.createElement("div");
+      el.className = "magic-star";
+      el.style.cssText = `
+        left:${5+Math.random()*90}%;
+        top:${5+Math.random()*70}%;
+        --sdur:${2+Math.random()*4}s;
+        --sdelay:${Math.random()*5}s;
+      `;
+      container.appendChild(el);
+    }
+
+    // Fairies
+    const fairySVG = (hairColor, dressColor, skinColor = "#f5d0a0") => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="62" height="82" viewBox="0 0 62 82">
+        <!-- Ambient glow -->
+        <ellipse cx="31" cy="48" rx="26" ry="24" fill="rgba(180,255,180,0.09)"/>
+
+        <!-- Wings left -->
+        <g class="fairy-wings-left">
+          <!-- Upper wing: teardrop shape with vein -->
+          <path d="M31 42 Q10 24 12 40 Q14 52 31 46" fill="rgba(210,255,225,0.48)" stroke="rgba(160,245,190,0.65)" stroke-width="0.9"/>
+          <path d="M31 42 Q18 28 16 38" stroke="rgba(200,255,210,0.4)" stroke-width="0.5" fill="none"/>
+          <path d="M31 42 Q14 32 14 42" stroke="rgba(200,255,210,0.3)" stroke-width="0.4" fill="none"/>
+          <!-- Lower wing -->
+          <path d="M31 46 Q10 44 13 56 Q16 64 31 54" fill="rgba(195,230,255,0.38)" stroke="rgba(150,210,245,0.55)" stroke-width="0.8"/>
+          <path d="M31 46 Q14 50 15 56" stroke="rgba(190,225,255,0.35)" stroke-width="0.4" fill="none"/>
+        </g>
+        <!-- Wings right -->
+        <g class="fairy-wings-right">
+          <path d="M31 42 Q52 24 50 40 Q48 52 31 46" fill="rgba(210,255,225,0.48)" stroke="rgba(160,245,190,0.65)" stroke-width="0.9"/>
+          <path d="M31 42 Q44 28 46 38" stroke="rgba(200,255,210,0.4)" stroke-width="0.5" fill="none"/>
+          <path d="M31 42 Q48 32 48 42" stroke="rgba(200,255,210,0.3)" stroke-width="0.4" fill="none"/>
+          <path d="M31 46 Q52 44 49 56 Q46 64 31 54" fill="rgba(195,230,255,0.38)" stroke="rgba(150,210,245,0.55)" stroke-width="0.8"/>
+          <path d="M31 46 Q48 50 47 56" stroke="rgba(190,225,255,0.35)" stroke-width="0.4" fill="none"/>
+        </g>
+
+        <!-- Torso / bodice -->
+        <path d="M24 56 Q24 48 31 46 Q38 48 38 56 Q36 62 31 63 Q26 62 24 56Z" fill="${dressColor}"/>
+        <!-- Dress skirt -->
+        <path d="M24 56 Q20 66 25 70 Q28 73 31 72 Q34 73 37 70 Q42 66 38 56 Q35 63 31 63 Q27 63 24 56Z" fill="${dressColor}" opacity="0.9"/>
+        <!-- Dress highlight -->
+        <path d="M27 48 Q31 46 35 48 Q33 52 31 52 Q29 52 27 48Z" fill="rgba(255,255,255,0.25)"/>
+
+        <!-- Neck -->
+        <rect x="28.5" y="43" width="5" height="5" rx="2" fill="${skinColor}"/>
+
+        <!-- Head -->
+        <ellipse cx="31" cy="33" rx="12" ry="13" fill="${skinColor}"/>
+
+        <!-- Hair back layer -->
+        <path d="M19 30 Q20 16 31 13 Q42 16 43 30 Q38 20 31 19 Q24 20 19 30Z" fill="${hairColor}" opacity="0.7"/>
+        <!-- Hair side strands -->
+        <path d="M19 30 Q15 36 16 42 Q18 46 20 44 Q18 40 19 34" fill="${hairColor}"/>
+        <path d="M43 30 Q47 36 46 42 Q44 46 42 44 Q44 40 43 34" fill="${hairColor}"/>
+        <!-- Hair top -->
+        <path d="M19 30 Q20 16 31 13 Q42 16 43 30 Q38 21 31 20 Q24 21 19 30Z" fill="${hairColor}"/>
+
+        <!-- Ears -->
+        <ellipse cx="19" cy="33" rx="2.5" ry="3" fill="${skinColor}"/>
+        <ellipse cx="43" cy="33" rx="2.5" ry="3" fill="${skinColor}"/>
+
+        <!-- Eyes — slightly almond shaped -->
+        <path d="M23 32 Q25 29.5 27 32 Q25 34 23 32Z" fill="#1e1008"/>
+        <path d="M35 32 Q37 29.5 39 32 Q37 34 35 32Z" fill="#1e1008"/>
+        <!-- Iris color -->
+        <ellipse cx="25" cy="31.8" rx="1.6" ry="1.8" fill="#4a8060"/>
+        <ellipse cx="37" cy="31.8" rx="1.6" ry="1.8" fill="#4a8060"/>
+        <!-- Pupil -->
+        <ellipse cx="25" cy="32" rx="0.9" ry="1.1" fill="#1e1008"/>
+        <ellipse cx="37" cy="32" rx="0.9" ry="1.1" fill="#1e1008"/>
+        <!-- Eye shine -->
+        <circle cx="25.7" cy="30.8" r="0.7" fill="white"/>
+        <circle cx="37.7" cy="30.8" r="0.7" fill="white"/>
+        <!-- Lashes (top) -->
+        <path d="M23 30.5 Q24 28.5 25 29.5" stroke="#1e1008" stroke-width="0.7" fill="none" stroke-linecap="round"/>
+        <path d="M27 30.5 Q26.5 28.5 25.5 29.5" stroke="#1e1008" stroke-width="0.6" fill="none" stroke-linecap="round"/>
+        <path d="M35 30.5 Q36 28.5 37 29.5" stroke="#1e1008" stroke-width="0.7" fill="none" stroke-linecap="round"/>
+        <path d="M39 30.5 Q38.5 28.5 37.5 29.5" stroke="#1e1008" stroke-width="0.6" fill="none" stroke-linecap="round"/>
+
+        <!-- Eyebrows (soft, arched) -->
+        <path d="M22.5 28.5 Q25 27 27.5 28" stroke="${hairColor}" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.85"/>
+        <path d="M34.5 28.5 Q37 27 39.5 28" stroke="${hairColor}" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.85"/>
+
+        <!-- Nose (subtle) -->
+        <path d="M30 36 Q31 37.5 32 36" stroke="rgba(180,120,90,0.55)" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+
+        <!-- Rosy cheeks -->
+        <ellipse cx="21" cy="36" rx="3.5" ry="2.2" fill="rgba(255,160,150,0.38)"/>
+        <ellipse cx="41" cy="36" rx="3.5" ry="2.2" fill="rgba(255,160,150,0.38)"/>
+
+        <!-- Lips -->
+        <path d="M27.5 39.5 Q29 38.5 31 39 Q33 38.5 34.5 39.5 Q33 41.5 31 41 Q29 41.5 27.5 39.5Z" fill="#d08878"/>
+        <path d="M27.5 39.5 Q31 39 34.5 39.5" stroke="rgba(180,80,70,0.5)" stroke-width="0.5" fill="none"/>
+
+        <!-- Wand -->
+        <line x1="39" y1="50" x2="53" y2="30" stroke="#d8c840" stroke-width="2" stroke-linecap="round"/>
+        <line x1="39" y1="50" x2="53" y2="30" stroke="rgba(255,240,140,0.4)" stroke-width="4" stroke-linecap="round"/>
+        <!-- Wand tip star -->
+        <path d="M53,25 l1.8,5 5.2,0 -4.2,3 1.6,5 -4.4,-3.2 -4.4,3.2 1.6,-5 -4.2,-3 5.2,0 z" fill="#ffe840" stroke="#c8a820" stroke-width="0.7" transform="scale(0.75) translate(17.5, 8)"/>
+        <!-- Star glow -->
+        <circle cx="53" cy="27" r="4" fill="rgba(255,240,100,0.25)"/>
+        <!-- Sparkle trail -->
+        <circle cx="56" cy="22" r="2.2" fill="#ffe840" opacity="0.8"/>
+        <circle cx="59" cy="17" r="1.4" fill="#fff480" opacity="0.55"/>
+        <circle cx="55" cy="14" r="1" fill="#ffe840" opacity="0.35"/>
+      </svg>`;
+
+    const fairies = [
+      { x: 8,  y: 18, dur: 13, delay: 0, hair: "#70d060", dress: "#d060c0", skin: "#f5d0a0" },
+      { x: 68, y: 30, dur: 17, delay: 5, hair: "#d8b840", dress: "#7070d8", skin: "#e8b888" },
+    ];
+    fairies.forEach(f => {
+      const wrap = document.createElement("div");
+      wrap.className = "fairy";
+      wrap.style.cssText = `left:${f.x}%; top:${f.y}%; --fdur:${f.dur}s; --fdelay:${f.delay}s;`;
+      wrap.innerHTML = fairySVG(f.hair, f.dress, f.skin);
+      container.appendChild(wrap);
+    });
+  }
+
+  function applyTheme(name) {
+    document.documentElement.setAttribute("data-theme", name);
+    localStorage.setItem(THEME_KEY, name);
+    document.querySelectorAll(".theme-dot").forEach(d => {
+      d.classList.toggle("active", d.dataset.theme === name);
+    });
+    if (name === "forest") buildMagicEffects();
+    else document.getElementById("magic-effects").innerHTML = "";
+    renderChart(); // chart colors read from CSS vars at render time
+  }
+
+  document.querySelectorAll(".theme-dot").forEach(dot => {
+    dot.addEventListener("click", () => applyTheme(dot.dataset.theme));
+  });
+
+  // ── DATA LAYER ──────────────────────────────────────────────────────────────
+  const STORAGE_KEY = "mira_climbs";
+  function loadClimbs() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+  function saveClimbs(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+  function addClimb(climb) { const arr = loadClimbs(); arr.unshift(climb); saveClimbs(arr); }
+  function deleteClimb(id) { saveClimbs(loadClimbs().filter(c => c.id !== id)); }
+
+  // ── STATE ───────────────────────────────────────────────────────────────────
+  let activeSystem  = localStorage.getItem("mira_system") || "V";
+  let activeOutcome = "sent";
+  let attempts  = 1;
+  let isProject = false;
+
+  // ── FORM SETUP ──────────────────────────────────────────────────────────────
+  const inputDate     = document.getElementById("inputDate");
+  const inputGrade    = document.getElementById("inputGrade");
+  const attemptsVal   = document.getElementById("attemptsVal");
+  const locationInput = document.getElementById("inputLocation");
+  const locationList  = document.getElementById("locationList");
+  const notesInput    = document.getElementById("inputNotes");
+  const logBtn        = document.getElementById("logBtn");
+
+  inputDate.value = new Date().toISOString().slice(0,10);
+
+  function populateGrades(system) {
+    inputGrade.innerHTML = "";
+    for (const grade of Object.keys(gradeMap(system))) {
+      const opt = document.createElement("option");
+      opt.value = grade; opt.textContent = grade;
+      inputGrade.appendChild(opt);
+    }
+  }
+  populateGrades(activeSystem);
+
+  function syncSystemButtons() {
+    document.querySelectorAll(".system-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.system === activeSystem);
+    });
+  }
+  syncSystemButtons();
+
+  document.querySelectorAll(".system-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeSystem = btn.dataset.system;
+      localStorage.setItem("mira_system", activeSystem);
+      populateGrades(activeSystem);
+      syncSystemButtons();
+    });
+  });
+
+  document.getElementById("attemptsDown").addEventListener("click", () => {
+    if (attempts > 1) { attempts--; attemptsVal.textContent = attempts; }
+  });
+  document.getElementById("attemptsUp").addEventListener("click", () => {
+    if (activeOutcome === "flash") return;
+    attempts++;
+    attemptsVal.textContent = attempts;
+  });
+
+  function setOutcome(outcome) {
+    activeOutcome = outcome;
+    document.querySelectorAll(".outcome-card").forEach(card => {
+      card.className = "outcome-card";
+      if (card.dataset.outcome === outcome) card.classList.add(`selected-${outcome}`);
+    });
+    if (outcome === "flash") { attempts = 1; attemptsVal.textContent = 1; }
+    const upBtn = document.getElementById("attemptsUp");
+    upBtn.disabled = outcome === "flash";
+    upBtn.style.opacity = outcome === "flash" ? "0.25" : "";
+    upBtn.style.cursor  = outcome === "flash" ? "not-allowed" : "";
+  }
+  setOutcome("sent");
+
+  document.querySelectorAll(".outcome-card").forEach(card => {
+    card.addEventListener("click", () => setOutcome(card.dataset.outcome));
+  });
+
+  const projectToggle = document.getElementById("projectToggle");
+  projectToggle.addEventListener("click", () => {
+    isProject = !isProject;
+    projectToggle.classList.toggle("active", isProject);
+  });
+
+  function refreshLocationList() {
+    const locs = [...new Set(loadClimbs().map(c=>c.location).filter(Boolean))];
+    locationList.innerHTML = locs.map(l=>`<option value="${l}">`).join("");
+  }
+  refreshLocationList();
+
+  document.getElementById("climbForm").addEventListener("submit", e => {
+    e.preventDefault();
+    addClimb({
+      id:          Date.now().toString(),
+      date:        inputDate.value,
+      grade:       inputGrade.value,
+      gradeSystem: activeSystem,
+      attempts:    attempts,
+      outcome:     activeOutcome,
+      isProject:   isProject,
+      location:    locationInput.value.trim(),
+      notes:       notesInput.value.trim(),
+    });
+    locationInput.value = "";
+    notesInput.value    = "";
+    attempts = 1; attemptsVal.textContent = 1;
+    isProject = false; projectToggle.classList.remove("active");
+    setOutcome("sent");
+    refreshLocationList();
+    renderAll();
+    logBtn.classList.remove("ready");
+    void logBtn.offsetWidth;
+    logBtn.classList.add("ready");
+  });
+
+  // ── STATS BAR ───────────────────────────────────────────────────────────────
+  function renderStats() {
+    const climbs = loadClimbs();
+    const statsBar = document.getElementById("statsBar");
+    if (climbs.length === 0) { statsBar.innerHTML = ""; return; }
+
+    const vSent   = climbs.filter(c => c.gradeSystem === "V"   && (c.outcome === "flash" || c.outcome === "sent"));
+    const ydsSent = climbs.filter(c => c.gradeSystem === "YDS" && (c.outcome === "flash" || c.outcome === "sent"));
+    const topV    = vSent.length   ? Object.entries(V_GRADES).sort((a,b)=>b[1]-a[1]).find(([g])=>vSent.some(c=>c.grade===g))   : null;
+    const topYDS  = ydsSent.length ? Object.entries(YDS_GRADES).sort((a,b)=>b[1]-a[1]).find(([g])=>ydsSent.some(c=>c.grade===g)): null;
+    const flashes  = climbs.filter(c => c.outcome === "flash").length;
+    const projects = climbs.filter(c => c.isProject).length;
+
+    let html = `<div class="stat"><span class="stat-label">Total</span><span class="stat-value">${climbs.length}</span></div>`;
+    if (topV)    html += `<div class="stat"><span class="stat-label">Top Boulder</span><span class="stat-value">${topV[0]}</span></div>`;
+    if (topYDS)  html += `<div class="stat"><span class="stat-label">Top Sport</span><span class="stat-value">${topYDS[0]}</span></div>`;
+    if (flashes)  html += `<div class="stat"><span class="stat-label">Flashes</span><span class="stat-value">${flashes}</span></div>`;
+    if (projects) html += `<div class="stat"><span class="stat-label">Projects</span><span class="stat-value">${projects}</span></div>`;
+    statsBar.innerHTML = html;
+  }
+
+  // ── CLIMB LIST ──────────────────────────────────────────────────────────────
+  function renderClimbList() {
+    const climbs    = loadClimbs();
+    const container = document.getElementById("climbList");
+
+    if (climbs.length === 0) {
+      container.innerHTML = `<div class="empty-state">No climbs yet — log your first one above.</div>`;
+      return;
+    }
+
+    const sends = climbs.filter(c => c.outcome === "flash" || c.outcome === "sent");
+    let topId = null;
+    if (sends.length) {
+      topId = sends.reduce((best, c) => {
+        return gradeToNum(c.grade, c.gradeSystem) > gradeToNum(best.grade, best.gradeSystem) ? c : best;
+      }).id;
+    }
+
+    container.innerHTML = climbs.map(c => {
+      const outcomeLabel = c.outcome === "flash" ? "⚡ Flash" : c.outcome === "sent" ? "✓ Sent It" : "✗ Fell";
+      const projectTag   = c.isProject ? `<span class="project-tag">Project</span>` : "";
+      const crown        = c.id === topId ? `<span class="crown" title="Your highest grade!">★</span>` : "";
+      const meta = [c.date, `${c.attempts} tr${c.attempts!==1?"ies":"y"}`, c.location, c.notes].filter(Boolean).join(" · ");
+      return `
+        <div class="climb-card" id="card-${c.id}">
+          <div class="grade-badge badge-${c.outcome}">${c.grade}</div>
+          <div class="climb-info">
+            <div>${outcomeLabel}${projectTag}${crown}</div>
+            <div class="climb-meta">${meta}</div>
+          </div>
+          <button class="delete-btn" onclick="removeclimb('${c.id}')" title="Delete">✕</button>
+        </div>`;
+    }).join("");
+  }
+
+  window.removeclimb = function(id) { deleteClimb(id); renderAll(); };
+
+  // ── CHART ───────────────────────────────────────────────────────────────────
+  let chart = null;
+
+  function renderChart() {
+    const climbs = loadClimbs();
+    const ctx    = document.getElementById("climbChart").getContext("2d");
+    const cs     = getComputedStyle(document.documentElement);
+    const gridCol   = cs.getPropertyValue("--chart-grid-col").trim()  || "rgba(180,160,220,0.12)";
+    const tickCol   = cs.getPropertyValue("--chart-tick-col").trim()  || "#9b90bc";
+    const legendCol = cs.getPropertyValue("--chart-legend-col").trim()|| "#2e2b4a";
+
+    const vData   = climbs.filter(c => c.gradeSystem === "V")
+                          .map(c => ({ x: c.date, y: V_GRADES[c.grade] ?? 0, outcome: c.outcome }))
+                          .sort((a,b) => a.x.localeCompare(b.x));
+    const ydsData = climbs.filter(c => c.gradeSystem === "YDS")
+                          .map(c => ({ x: c.date, y: YDS_GRADES[c.grade] ?? 0, outcome: c.outcome }))
+                          .sort((a,b) => a.x.localeCompare(b.x));
+
+    const pointBg = (pts, sentColor) => pts.map(p =>
+      p.outcome === "flash" ? "#ff5757" : p.outcome === "sent" ? sentColor : "rgba(176,107,255,0.35)"
+    );
+    const pointBorder = pts => pts.map(p => p.outcome === "fell" ? "#a855f7" : "transparent");
+    const pointBorderW = pts => pts.map(p => p.outcome === "fell" ? 2 : 0);
+
+    const datasets = [];
+    if (vData.length) datasets.push({
+      label: "Bouldering (V)",
+      data: vData,
+      borderColor: "#ffd166",
+      backgroundColor: "rgba(255,209,102,0.07)",
+      pointBackgroundColor: pointBg(vData, "#ffd166"),
+      pointBorderColor: pointBorder(vData),
+      pointBorderWidth: pointBorderW(vData),
+      pointRadius: 7, pointHoverRadius: 10, tension: 0.3, fill: true,
+    });
+    if (ydsData.length) datasets.push({
+      label: "Sport (5.x)",
+      data: ydsData,
+      borderColor: "#00d4c8",
+      backgroundColor: "rgba(0,212,200,0.07)",
+      pointBackgroundColor: pointBg(ydsData, "#00d4c8"),
+      pointBorderColor: pointBorder(ydsData),
+      pointBorderWidth: pointBorderW(ydsData),
+      pointRadius: 7, pointHoverRadius: 10, tension: 0.3, fill: true,
+    });
+
+    if (chart) { chart.destroy(); chart = null; }
+    if (datasets.length === 0) {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      return;
+    }
+
+    chart = new Chart(ctx, {
+      type: "line",
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: "time",
+            time: { unit: "day", tooltipFormat: "MMM d, yyyy" },
+            grid: { color: gridCol },
+            ticks: { color: tickCol },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: gridCol },
+            ticks: {
+              color: tickCol,
+              stepSize: 1,
+              callback: val => vData.length ? (REV_V[val] ?? "") : (REV_YDS[val] ?? "")
+            }
+          }
+        },
+        plugins: {
+          legend: { labels: { color: legendCol, font: { family: "Josefin Sans", size: 12 } } },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const system = ctx.dataset.label.startsWith("Boulder") ? "V" : "YDS";
+                const grade  = numToGrade(ctx.parsed.y, system);
+                const match  = climbs.find(c => c.date === (ctx.raw?.x ?? "") && c.grade === grade && c.gradeSystem === system);
+                if (match) {
+                  const ol   = match.outcome === "flash" ? "⚡ Flash" : match.outcome === "sent" ? "✓ Sent" : "✗ Fell";
+                  const proj = match.isProject ? " · Project" : "";
+                  return `${grade} — ${ol}${proj} (${match.attempts} tr${match.attempts!==1?"ies":"y"})`;
+                }
+                return grade;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ── RENDER ALL ──────────────────────────────────────────────────────────────
+  function renderAll() { renderStats(); renderChart(); renderClimbList(); }
+
+  // ── INIT ────────────────────────────────────────────────────────────────────
+  applyTheme(localStorage.getItem(THEME_KEY) || "pastel");
+  renderAll();
+</script>
+</body>
+</html>
