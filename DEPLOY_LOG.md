@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-04-14 06:57:52
+
+- **Commit:** `1286077` `12860773d8eb8a661381a812ea49ae488cbbce1a`
+- **Message:** Add user accounts with Firebase login and Firestore cloud sync
+- **Files changed:**
+  - `CLAUDE.md`
+  - `index.html`
+  - `scripts/pre-deploy.js`
+
+---
 ## 2026-04-14 22:04:57
 
 - **Commit:** `78c4757` `78c4757a51a5bf56e3fdba98f1f0c8d9e2145c8a`

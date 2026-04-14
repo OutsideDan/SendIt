@@ -2,7 +2,7 @@
 
 # SendIt! — Project Status
 
-**Last updated:** 2026-04-14 (chore: pre-deploy docs update 2026-04-12)
+**Last updated:** 2026-04-14 (Add user accounts with Firebase login and Firestore cloud sync)
 **Live URL:** https://outsidedan.github.io/SendIt/
 **Repo:** https://github.com/OutsideDan/SendIt
 
