@@ -74,7 +74,7 @@ Every plan for a new feature or file must include:
 - Where it fires
 - What format the check takes
 
-Do not wait until after implementation to design the check.
+Implementing that check in `scripts/pre-deploy.js` is part of the feature — not optional, not later. A feature is not done until its check is in the script.
 
 ### When Writing Instructions or Explanations (for Mira)
 - Avoid assumed technical knowledge
