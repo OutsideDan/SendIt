@@ -23,6 +23,30 @@ A rock climbing progress tracker. Mira logs her climbs and sees a chart of her i
 
 ---
 
+## Note for Mira — Last Session (2026-04-13)
+
+Hey Mira! Last session was a big one. Here's what we built:
+
+**Accounts are live.** SendIt now has a real login system. Anyone can go to the app, create an account with a username and PIN, and log in from any device — phone, laptop, wherever. Your climbs are saved to the cloud (Firebase, which is basically Google's database) instead of just your browser, so they follow you around.
+
+**What we actually did:**
+- Added Firebase to the app — that's the service that stores everyone's data online
+- Built the account screen you see when you first open the app (Log In / Create Account)
+- PINs get scrambled before they're saved (it's called hashing — so even I can't read your PIN from the database)
+- Username taken? It tells you. Wrong PIN? It tells you. It doesn't just silently fail.
+- "Switch Account" button in the header so multiple people can use the app on the same device
+
+**One thing to know:** usernames are lowercased automatically, so `Mira` and `mira` are the same account. Pick whatever nickname you want — just remember it.
+
+**Next up (ideas, not a to-do):**
+- Deploy it live so anyone can use it (`npm run deploy`)
+- Dad comparison view — now that accounts exist, it's actually possible
+- Anything else you want to add
+
+What do you want to work on today?
+
+---
+
 ## Universal Rules
 
 ### Behavior

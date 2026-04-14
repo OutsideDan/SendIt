@@ -17,11 +17,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://www.gstatic.com">
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
   <!-- defer: scripts download in parallel but run after HTML is parsed, so they don't block render -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0" defer></script>
+  <!-- Firebase compat SDK — loaded with defer, available by DOMContentLoaded -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js" defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -297,6 +302,36 @@
     .theme-dot[data-theme="sunset"]   { background: linear-gradient(135deg, #ffd890, #ffb0c0, #c8a8e0); }
     .theme-dot[data-theme="forest"]   { background: linear-gradient(135deg, #1c3228, #4a7858, #b8a8e8); }
 
+    /* ── USER PILL ── */
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .user-pill-name {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .switch-account-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 3px 10px;
+      text-transform: uppercase;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .switch-account-btn:hover { color: var(--text); border-color: var(--focus-ring); }
+
     /* ── STATS BAR ── */
     .stats-bar {
       display: flex;
@@ -372,6 +407,7 @@
     }
     input[type="date"],
     input[type="text"],
+    input[type="password"],
     select,
     textarea {
       background: var(--input-bg);
@@ -533,6 +569,7 @@
     }
     .log-btn:hover { opacity: 0.9; transform: translateY(-1px); }
     .log-btn:active { transform: translateY(0); }
+    .log-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     @keyframes jiggle {
       0%,100% { transform: rotate(0deg); }
       20%      { transform: rotate(-2deg); }
@@ -588,6 +625,48 @@
     }
     .delete-btn:hover { color: var(--del-hover-color); background: var(--del-hover-bg); }
 
+    /* ── ACCOUNT SCREEN ── */
+    #accountScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--body-bg);
+      background-attachment: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+    }
+    .account-card {
+      width: 100%;
+      max-width: 380px;
+    }
+    .account-card .header-title {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 4px;
+    }
+    .account-card .header-sub {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .account-tabs {
+      margin-bottom: 16px;
+    }
+    .account-error {
+      color: #d06080;
+      font-size: 0.78rem;
+      font-weight: 600;
+      min-height: 18px;
+      margin-top: 4px;
+    }
+    .account-hint {
+      color: var(--muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
     /* ── MOBILE ── */
     @media (max-width: 600px) {
       .header-title { font-size: 1.5rem; }
@@ -595,11 +674,62 @@
       .form-group.full { grid-column: 1; }
       .chart-wrap { height: 200px; }
       .theme-picker { top: 16px; right: 16px; }
+      .account-card { padding: 20px; }
     }
   </style>
 </head>
 <body>
+
+<!-- ACCOUNT SCREEN OVERLAY — shown until user logs in -->
+<div id="accountScreen">
+  <div class="section-card account-card">
+    <div class="header-title">SendIt!</div>
+    <div class="header-sub">Climb Tracker</div>
+
+    <div class="system-toggle account-tabs">
+      <button type="button" class="system-btn active" id="tabLogin">Log In</button>
+      <button type="button" class="system-btn" id="tabCreate">Create Account</button>
+    </div>
+
+    <!-- Log in panel -->
+    <div id="panelLogin">
+      <div class="form-group" style="margin-bottom:12px">
+        <label for="loginUsername">Username</label>
+        <input type="text" id="loginUsername" placeholder="your nickname" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="loginPin">PIN</label>
+        <input type="password" id="loginPin" placeholder="4–8 digits" maxlength="8" autocomplete="current-password">
+      </div>
+      <div id="loginError" class="account-error"></div>
+      <button type="button" class="log-btn" id="loginBtn" style="margin-top:10px">Log In</button>
+    </div>
+
+    <!-- Create account panel -->
+    <div id="panelCreate" style="display:none">
+      <div class="form-group">
+        <label for="createUsername">Username</label>
+        <input type="text" id="createUsername" placeholder="pick a nickname" maxlength="20" autocomplete="username">
+        <div class="account-hint">Use a nickname — not your real name</div>
+      </div>
+      <div class="form-group" style="margin-top:12px; margin-bottom:12px">
+        <label for="createPin">PIN</label>
+        <input type="password" id="createPin" placeholder="4–8 digits" maxlength="8" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label for="createPinConfirm">Confirm PIN</label>
+        <input type="password" id="createPinConfirm" placeholder="same PIN again" maxlength="8" autocomplete="new-password">
+      </div>
+      <div id="createError" class="account-error"></div>
+      <button type="button" class="log-btn" id="createBtn" style="margin-top:10px">Create Account</button>
+    </div>
+  </div>
+</div>
+
 <div id="magic-effects"></div>
+
+<!-- MAIN APP — hidden until logged in -->
+<div id="mainContent" style="display:none">
 
 <header>
   <div class="header-title">SendIt!</div>
@@ -609,6 +739,10 @@
     <button class="theme-dot" data-theme="midnight" title="Midnight"></button>
     <button class="theme-dot" data-theme="sunset"   title="Sunset"></button>
     <button class="theme-dot" data-theme="forest"   title="Forest"></button>
+  </div>
+  <div class="user-pill" id="userPill" style="display:none">
+    <span class="user-pill-name" id="userLabel"></span>
+    <button class="switch-account-btn" id="switchAccountBtn" title="Switch account">Switch Account</button>
   </div>
   <div class="stats-bar" id="statsBar"></div>
 </header>
@@ -708,7 +842,20 @@
 
 </main>
 
+</div><!-- end #mainContent -->
+
 <script>
+  // ── FIREBASE CONFIG ─────────────────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAgMOSs7_6C6ZSAuqgRtsR8pXeXnEkwlwA",
+    authDomain:        "sendit-67c81.firebaseapp.com",
+    projectId:         "sendit-67c81",
+    storageBucket:     "sendit-67c81.firebasestorage.app",
+    messagingSenderId: "710942811721",
+    appId:             "1:710942811721:web:74493e7bd850403eedc198",
+    measurementId:     "G-ZZ0FW7C9R0"
+  };
+
   // ── GRADE MAPPINGS ──────────────────────────────────────────────────────────
   const V_GRADES = { "V0":0,"V1":1,"V2":2,"V3":3,"V4":4,"V5":5,"V6":6,"V7":7,"V8":8,"V9":9,"V10":10,"V11":11,"V12":12 };
   const YDS_GRADES = {
@@ -882,25 +1029,98 @@
     });
     if (name === "forest") buildMagicEffects();
     else document.getElementById("magic-effects").innerHTML = "";
-    renderChart(); // chart colors read from CSS vars at render time
+    if (currentUser && db) renderAll();
   }
 
   document.querySelectorAll(".theme-dot").forEach(dot => {
     dot.addEventListener("click", () => applyTheme(dot.dataset.theme));
   });
 
-  // ── DATA LAYER ──────────────────────────────────────────────────────────────
-  const STORAGE_KEY = "mira_climbs";
-  function loadClimbs() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
-  function saveClimbs(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
-  function addClimb(climb) { const arr = loadClimbs(); arr.unshift(climb); saveClimbs(arr); }
-  function deleteClimb(id) { saveClimbs(loadClimbs().filter(c => c.id !== id)); }
-
   // ── STATE ───────────────────────────────────────────────────────────────────
+  let db          = null;
+  let currentUser = null;
+
   let activeSystem  = localStorage.getItem("mira_system") || "V";
   let activeOutcome = "sent";
   let attempts  = 1;
   let isProject = false;
+
+  // ── ACCOUNT / FIREBASE ──────────────────────────────────────────────────────
+
+  async function hashPin(pin) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pin));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function createAccount(username, pin) {
+    const clean = username.trim().toLowerCase();
+    if (!/^[a-z0-9_-]{2,20}$/.test(clean)) {
+      throw new Error("Username: 2–20 chars, letters/numbers/- or _ only");
+    }
+    if (!/^\d{4,8}$/.test(pin)) {
+      throw new Error("PIN must be 4–8 digits");
+    }
+    const docRef   = db.collection("accounts").doc(clean);
+    const existing = await docRef.get();
+    if (existing.exists) throw new Error("That username is taken — try another");
+    const pinHash = await hashPin(pin);
+    await docRef.set({ pinHash, createdAt: new Date().toISOString() });
+    currentUser = { username: clean };
+    showMainApp();
+  }
+
+  async function loginAccount(username, pin) {
+    const clean = username.trim().toLowerCase();
+    if (!clean) throw new Error("Enter your username");
+    if (!pin)   throw new Error("Enter your PIN");
+    const docRef = db.collection("accounts").doc(clean);
+    const doc    = await docRef.get();
+    if (!doc.exists) throw new Error("Account not found");
+    const pinHash = await hashPin(pin);
+    if (pinHash !== doc.data().pinHash) throw new Error("Wrong PIN");
+    currentUser = { username: clean };
+    showMainApp();
+  }
+
+  // ── DATA LAYER (Firestore) ──────────────────────────────────────────────────
+
+  async function loadClimbs() {
+    const snap = await db
+      .collection("accounts/" + currentUser.username + "/climbs")
+      .orderBy("date", "desc")
+      .get();
+    return snap.docs.map(d => d.data());
+  }
+
+  async function addClimb(climb) {
+    await db
+      .collection("accounts/" + currentUser.username + "/climbs")
+      .doc(climb.id)
+      .set(climb);
+  }
+
+  async function deleteClimb(id) {
+    await db
+      .collection("accounts/" + currentUser.username + "/climbs")
+      .doc(id)
+      .delete();
+  }
+
+  // ── ACCOUNT SCREEN TRANSITIONS ──────────────────────────────────────────────
+
+  function showAccountScreen() {
+    document.getElementById("accountScreen").style.display = "flex";
+    document.getElementById("mainContent").style.display  = "none";
+    document.getElementById("userPill").style.display     = "none";
+  }
+
+  async function showMainApp() {
+    document.getElementById("accountScreen").style.display = "none";
+    document.getElementById("mainContent").style.display  = "";
+    document.getElementById("userPill").style.display     = "flex";
+    document.getElementById("userLabel").textContent      = currentUser.username;
+    await renderAll();
+  }
 
   // ── FORM SETUP ──────────────────────────────────────────────────────────────
   const inputDate     = document.getElementById("inputDate");
@@ -925,12 +1145,14 @@
 
   function syncSystemButtons() {
     document.querySelectorAll(".system-btn").forEach(btn => {
+      if (!btn.dataset.system) return;
       btn.classList.toggle("active", btn.dataset.system === activeSystem);
     });
   }
   syncSystemButtons();
 
   document.querySelectorAll(".system-btn").forEach(btn => {
+    if (!btn.dataset.system) return;
     btn.addEventListener("click", () => {
       activeSystem = btn.dataset.system;
       localStorage.setItem("mira_system", activeSystem);
@@ -952,7 +1174,7 @@
     activeOutcome = outcome;
     document.querySelectorAll(".outcome-card").forEach(card => {
       card.className = "outcome-card";
-      if (card.dataset.outcome === outcome) card.classList.add(`selected-${outcome}`);
+      if (card.dataset.outcome === outcome) card.classList.add("selected-" + outcome);
     });
     if (outcome === "flash") { attempts = 1; attemptsVal.textContent = 1; }
     const upBtn = document.getElementById("attemptsUp");
@@ -972,15 +1194,14 @@
     projectToggle.classList.toggle("active", isProject);
   });
 
-  function refreshLocationList() {
-    const locs = [...new Set(loadClimbs().map(c=>c.location).filter(Boolean))];
+  function refreshLocationList(climbs) {
+    const locs = [...new Set(climbs.map(c=>c.location).filter(Boolean))];
     locationList.innerHTML = locs.map(l=>`<option value="${l}">`).join("");
   }
-  refreshLocationList();
 
-  document.getElementById("climbForm").addEventListener("submit", e => {
+  document.getElementById("climbForm").addEventListener("submit", async e => {
     e.preventDefault();
-    addClimb({
+    await addClimb({
       id:          Date.now().toString(),
       date:        inputDate.value,
       grade:       inputGrade.value,
@@ -996,16 +1217,14 @@
     attempts = 1; attemptsVal.textContent = 1;
     isProject = false; projectToggle.classList.remove("active");
     setOutcome("sent");
-    refreshLocationList();
-    renderAll();
+    await renderAll();
     logBtn.classList.remove("ready");
     void logBtn.offsetWidth;
     logBtn.classList.add("ready");
   });
 
   // ── STATS BAR ───────────────────────────────────────────────────────────────
-  function renderStats() {
-    const climbs = loadClimbs();
+  function renderStats(climbs) {
     const statsBar = document.getElementById("statsBar");
     if (climbs.length === 0) { statsBar.innerHTML = ""; return; }
 
@@ -1025,8 +1244,7 @@
   }
 
   // ── CLIMB LIST ──────────────────────────────────────────────────────────────
-  function renderClimbList() {
-    const climbs    = loadClimbs();
+  function renderClimbList(climbs) {
     const container = document.getElementById("climbList");
 
     if (climbs.length === 0) {
@@ -1059,13 +1277,12 @@
     }).join("");
   }
 
-  window.removeclimb = function(id) { deleteClimb(id); renderAll(); };
+  window.removeclimb = async function(id) { await deleteClimb(id); await renderAll(); };
 
   // ── CHART ───────────────────────────────────────────────────────────────────
   let chart = null;
 
-  function renderChart() {
-    const climbs = loadClimbs();
+  function renderChart(climbs) {
     const ctx    = document.getElementById("climbChart").getContext("2d");
     const cs     = getComputedStyle(document.documentElement);
     const gridCol   = cs.getPropertyValue("--chart-grid-col").trim()  || "rgba(180,160,220,0.12)";
@@ -1159,11 +1376,121 @@
   }
 
   // ── RENDER ALL ──────────────────────────────────────────────────────────────
-  function renderAll() { renderStats(); renderChart(); renderClimbList(); }
+  async function renderAll() {
+    if (!currentUser || !db) return;
+    const climbs = await loadClimbs();
+    renderStats(climbs);
+    renderClimbList(climbs);
+    renderChart(climbs);
+    refreshLocationList(climbs);
+  }
 
   // ── INIT ────────────────────────────────────────────────────────────────────
   applyTheme(localStorage.getItem(THEME_KEY) || "pastel");
-  renderAll();
+  showAccountScreen();
+
+  // ── ACCOUNT SCREEN UI (no Firebase needed — wire up immediately) ────────────
+
+  document.getElementById("tabLogin").addEventListener("click", () => {
+    document.getElementById("panelLogin").style.display  = "";
+    document.getElementById("panelCreate").style.display = "none";
+    document.getElementById("tabLogin").classList.add("active");
+    document.getElementById("tabCreate").classList.remove("active");
+  });
+
+  document.getElementById("tabCreate").addEventListener("click", () => {
+    document.getElementById("panelLogin").style.display  = "none";
+    document.getElementById("panelCreate").style.display = "";
+    document.getElementById("tabLogin").classList.remove("active");
+    document.getElementById("tabCreate").classList.add("active");
+  });
+
+  document.getElementById("switchAccountBtn").addEventListener("click", () => {
+    currentUser = null;
+    document.getElementById("loginUsername").value       = "";
+    document.getElementById("loginPin").value            = "";
+    document.getElementById("loginError").textContent    = "";
+    document.getElementById("panelLogin").style.display  = "";
+    document.getElementById("panelCreate").style.display = "none";
+    document.getElementById("tabLogin").classList.add("active");
+    document.getElementById("tabCreate").classList.remove("active");
+    showAccountScreen();
+  });
+
+  // Enter key navigation
+  document.getElementById("loginUsername").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("loginPin").focus();
+  });
+  document.getElementById("loginPin").addEventListener("keydown", e => {
+    if (e.key === "Enter") doLogin();
+  });
+  document.getElementById("createUsername").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("createPin").focus();
+  });
+  document.getElementById("createPin").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("createPinConfirm").focus();
+  });
+  document.getElementById("createPinConfirm").addEventListener("keydown", e => {
+    if (e.key === "Enter") doCreate();
+  });
+
+  // ── LOGIN / CREATE ──────────────────────────────────────────────────────────
+
+  async function doLogin() {
+    const btn     = document.getElementById("loginBtn");
+    const errorEl = document.getElementById("loginError");
+    errorEl.textContent = "";
+    if (!db) { errorEl.textContent = "Still connecting — try again in a moment."; return; }
+    btn.disabled    = true;
+    btn.textContent = "Logging in...";
+    try {
+      await loginAccount(
+        document.getElementById("loginUsername").value,
+        document.getElementById("loginPin").value
+      );
+    } catch (err) {
+      errorEl.textContent = err.message;
+      btn.disabled    = false;
+      btn.textContent = "Log In";
+    }
+  }
+
+  async function doCreate() {
+    const btn     = document.getElementById("createBtn");
+    const errorEl = document.getElementById("createError");
+    errorEl.textContent = "";
+    const pin     = document.getElementById("createPin").value;
+    const confirm = document.getElementById("createPinConfirm").value;
+    if (pin !== confirm) { errorEl.textContent = "PINs don't match"; return; }
+    if (!db) { errorEl.textContent = "Still connecting — try again in a moment."; return; }
+    btn.disabled    = true;
+    btn.textContent = "Creating...";
+    try {
+      await createAccount(
+        document.getElementById("createUsername").value,
+        pin
+      );
+    } catch (err) {
+      errorEl.textContent = err.message;
+      btn.disabled    = false;
+      btn.textContent = "Create Account";
+    }
+  }
+
+  document.getElementById("loginBtn").addEventListener("click", doLogin);
+  document.getElementById("createBtn").addEventListener("click", doCreate);
+
+  // ── FIREBASE INIT (runs after defer scripts load via DOMContentLoaded) ───────
+  // DOMContentLoaded fires after all defer scripts have executed, so firebase is available
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof firebase === "undefined") {
+      document.getElementById("loginError").textContent = "Could not load Firebase. Check your internet connection and refresh.";
+      return;
+    }
+    firebase.initializeApp(firebaseConfig);
+    try { firebase.analytics(); } catch (e) { /* analytics may be unavailable in some environments */ }
+    db = firebase.firestore();
+  });
 </script>
 </body>
 </html>

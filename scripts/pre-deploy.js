@@ -97,7 +97,7 @@ for (const [, src, attrs] of scriptTags) {
 }
 if (missingDefer === 0) pass('All external <script> tags have defer or async');
 
-for (const host of ['cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com']) {
+for (const host of ['cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com', 'www.gstatic.com']) {
   html.includes(`preconnect" href="https://${host}`)
     ? pass(`preconnect hint present for ${host}`)
     : warn(`Missing <link rel="preconnect"> for ${host}`);
@@ -173,7 +173,7 @@ if (!scriptBlock) {
 
 // ── localStorage key consistency ─────────────────────────────────────────────
 
-const CANONICAL_KEYS = ['mira_climbs', 'mira_theme', 'mira_system'];
+const CANONICAL_KEYS = ['mira_theme', 'mira_system'];
 // Check both direct string literals in localStorage calls AND string constants assigned to mira_* keys.
 const lsDirect  = [...scriptBlock.matchAll(/localStorage\.\w+\(\s*['"]([^'"]+)['"]/g)].map(m => m[1]);
 const lsConsts  = [...scriptBlock.matchAll(/=\s*["'](mira_[^"']+)["']/g)].map(m => m[1]);
