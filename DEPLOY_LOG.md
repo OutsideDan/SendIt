@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-04-14 09:04:18
+
+- **Commit:** `3a69771` `3a69771fc16e822acba9d1ed020d8ba95b72fbd5`
+- **Message:** Tighten embedded test rule — checks must land in pre-deploy.js
+- **Files changed:**
+  - `CLAUDE.md`
+
+---
 ## 2026-04-14 06:57:52
 
 - **Commit:** `1286077` `12860773d8eb8a661381a812ea49ae488cbbce1a`
