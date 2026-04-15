@@ -332,6 +332,41 @@
     }
     .switch-account-btn:hover { color: var(--text); border-color: var(--focus-ring); }
 
+    .guest-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0 14px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .guest-divider::before,
+    .guest-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .guest-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 12px;
+      text-transform: uppercase;
+      transition: border-color 0.15s, color 0.15s;
+      width: 100%;
+    }
+    .guest-btn:hover { border-color: var(--focus-ring); color: var(--text); }
+    .user-pill-name.is-guest { color: var(--gold); }
+
     /* ── STATS BAR ── */
     .stats-bar {
       display: flex;
@@ -723,6 +758,9 @@
       <div id="createError" class="account-error"></div>
       <button type="button" class="log-btn" id="createBtn" style="margin-top:10px">Create Account</button>
     </div>
+    <div class="guest-divider"><span>or</span></div>
+    <button type="button" class="guest-btn" id="guestBtn">Climb as a Guest</button>
+    <div class="account-hint" style="text-align:center; margin-top:6px">Your climbs save to this browser only — no account needed</div>
   </div>
 </div>
 
@@ -1029,7 +1067,7 @@
     });
     if (name === "forest") buildMagicEffects();
     else document.getElementById("magic-effects").innerHTML = "";
-    if (currentUser && db) renderAll();
+    if (currentUser && (currentUser.isGuest || db)) renderAll();
   }
 
   document.querySelectorAll(".theme-dot").forEach(dot => {
@@ -1066,6 +1104,7 @@
     const pinHash = await hashPin(pin);
     await docRef.set({ pinHash, createdAt: new Date().toISOString() });
     currentUser = { username: clean };
+    await migrateGuestClimbs();
     showMainApp();
   }
 
@@ -1082,9 +1121,29 @@
     showMainApp();
   }
 
+  function enterGuestMode() {
+    currentUser = { username: "Guest", isGuest: true };
+    showMainApp();
+  }
+
+  async function migrateGuestClimbs() {
+    const raw = localStorage.getItem("sendit_guest_climbs");
+    if (!raw) return;
+    const climbs = JSON.parse(raw);
+    if (!climbs.length) return;
+    const col = db.collection("accounts/" + currentUser.username + "/climbs");
+    await Promise.all(climbs.map(c => col.doc(c.id).set(c)));
+    localStorage.removeItem("sendit_guest_climbs");
+  }
+
   // ── DATA LAYER (Firestore) ──────────────────────────────────────────────────
 
   async function loadClimbs() {
+    if (currentUser.isGuest) {
+      const raw = localStorage.getItem("sendit_guest_climbs");
+      const all = raw ? JSON.parse(raw) : [];
+      return all.slice().sort((a, b) => b.date.localeCompare(a.date));
+    }
     const snap = await db
       .collection("accounts/" + currentUser.username + "/climbs")
       .orderBy("date", "desc")
@@ -1093,6 +1152,13 @@
   }
 
   async function addClimb(climb) {
+    if (currentUser.isGuest) {
+      const raw = localStorage.getItem("sendit_guest_climbs");
+      const all = raw ? JSON.parse(raw) : [];
+      all.push(climb);
+      localStorage.setItem("sendit_guest_climbs", JSON.stringify(all));
+      return;
+    }
     await db
       .collection("accounts/" + currentUser.username + "/climbs")
       .doc(climb.id)
@@ -1100,6 +1166,12 @@
   }
 
   async function deleteClimb(id) {
+    if (currentUser.isGuest) {
+      const raw = localStorage.getItem("sendit_guest_climbs");
+      const all = raw ? JSON.parse(raw) : [];
+      localStorage.setItem("sendit_guest_climbs", JSON.stringify(all.filter(c => c.id !== id)));
+      return;
+    }
     await db
       .collection("accounts/" + currentUser.username + "/climbs")
       .doc(id)
@@ -1119,6 +1191,7 @@
     document.getElementById("mainContent").style.display  = "";
     document.getElementById("userPill").style.display     = "flex";
     document.getElementById("userLabel").textContent      = currentUser.username;
+    document.getElementById("userLabel").classList.toggle("is-guest", !!currentUser.isGuest);
     await renderAll();
   }
 
@@ -1377,7 +1450,8 @@
 
   // ── RENDER ALL ──────────────────────────────────────────────────────────────
   async function renderAll() {
-    if (!currentUser || !db) return;
+    if (!currentUser) return;
+    if (!currentUser.isGuest && !db) return;
     const climbs = await loadClimbs();
     renderStats(climbs);
     renderClimbList(climbs);
@@ -1416,6 +1490,8 @@
     document.getElementById("tabCreate").classList.remove("active");
     showAccountScreen();
   });
+
+  document.getElementById("guestBtn").addEventListener("click", enterGuestMode);
 
   // Enter key navigation
   document.getElementById("loginUsername").addEventListener("keydown", e => {

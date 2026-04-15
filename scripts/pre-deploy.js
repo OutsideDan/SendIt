@@ -173,7 +173,7 @@ if (!scriptBlock) {
 
 // ── localStorage key consistency ─────────────────────────────────────────────
 
-const CANONICAL_KEYS = ['mira_theme', 'mira_system'];
+const CANONICAL_KEYS = ['mira_theme', 'mira_system', 'sendit_guest_climbs'];
 // Check both direct string literals in localStorage calls AND string constants assigned to mira_* keys.
 const lsDirect  = [...scriptBlock.matchAll(/localStorage\.\w+\(\s*['"]([^'"]+)['"]/g)].map(m => m[1]);
 const lsConsts  = [...scriptBlock.matchAll(/=\s*["'](mira_[^"']+)["']/g)].map(m => m[1]);
