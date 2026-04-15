@@ -2,7 +2,7 @@
 
 # SendIt! — Project Status
 
-**Last updated:** 2026-04-14 (Tighten embedded test rule — checks must land in pre-deploy.js)
+**Last updated:** 2026-04-15 (feat: add guest mode — use app without an account)
 **Live URL:** https://outsidedan.github.io/SendIt/
 **Repo:** https://github.com/OutsideDan/SendIt
 

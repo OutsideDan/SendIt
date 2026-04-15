@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-04-15 16:19:19
+
+- **Commit:** `96d6551` `96d6551e442bb058eed0d80a9b824ef15892e438`
+- **Message:** feat: add guest mode — use app without an account
+- **Files changed:**
+  - `index.html`
+  - `scripts/pre-deploy.js`
+
+---
 ## 2026-04-14 09:04:18
 
 - **Commit:** `3a69771` `3a69771fc16e822acba9d1ed020d8ba95b72fbd5`
